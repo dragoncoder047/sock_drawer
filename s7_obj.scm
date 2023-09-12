@@ -30,6 +30,7 @@
 
 (define p (make-object))
 (set! (property p 'foo) 'boogaloo)
+(set! (property p 'classmethod) (lambda (self _) (display (property self 'name))))
 (define x (make-object p))
 (attach-event x 'foo (lambda (p) (display "foo event on x")))
 (attach-event x 'bar (lambda (p) (display "bar event on x named ") (display (property x 'name))))
@@ -40,6 +41,9 @@
 (newline)
 (display "object prototype foo property = ")
 (display (property x 'foo))
+(newline)
+(display "calling method name = ")
+(property x 'classmethod '_)
 
 
 
