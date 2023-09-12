@@ -13,22 +13,33 @@
 
 (define property
   (dilambda
-   (lambda (obj path . params)
-     (if (pair? path)
-         (for-each (lambda (pth)
-                     (set! obj (or ((obj 'fields) pth)
-                                   ((lambda ()
-                                      (call-with-exit
-                                       (lambda (found) (error 'todo))))))))
-         (obj path)))
-   (lambda (obj path newval) (error 'todo))))
+   (lambda (obj name . params)
+         (let ((res ((obj 'fields) name)))
+           (unless res
+             (set! res (call-with-exit (lambda (done)
+                                         (for-each (lambda (proto)
+                                                     (let ((val (property proto name)))
+                                                       (when val (done val)))) (obj 'prototypes))
+                                         #f))))
+           (unless res (error 'no-such-property obj name))
+           (if (null? params)
+               res
+               (apply res (append (list obj) params)))))
+   (lambda (obj name newval) (hash-table-set! (obj 'fields) name newval))))
 
 
-(define x (make-object))
+(define p (make-object))
+(set! (property p 'foo) 'boogaloo)
+(define x (make-object p))
 (attach-event x 'foo (lambda (p) (display "foo event on x")))
-(attach-event x 'bar (lambda (p) (display "bar event on x named") (display (x 'name))))
-(set! (property x 'name) "foo")
+(attach-event x 'bar (lambda (p) (display "bar event on x named ") (display (property x 'name))))
+(set! (property x 'name) "bob")
+(call-event x 'foo #f)
+(newline)
 (call-event x 'bar #f)
+(newline)
+(display "object prototype foo property = ")
+(display (property x 'foo))
 
 
 
