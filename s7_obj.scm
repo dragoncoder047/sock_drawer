@@ -3,7 +3,7 @@
             'events (make-hook 'name 'payload)
             'fields (make-hash-table)
             'prototypes prototypes
-            'let-ref-fallback (lambda self&args (apply property self&args))
+            'let-ref-fallback (lambda (self name) (property self name))
             'let-set-fallback (lambda (self name value) (set! (property self name) value)))))
 
 (define (attach-event obj name handler)
@@ -17,25 +17,23 @@
 
 (define property
   (dilambda
-   (lambda (obj name . params)
+   (lambda (obj name)
          (let ((res ((obj 'fields) name)))
            (unless res
              (set! res (call-with-exit (lambda (done)
                                          (for-each (lambda (proto)
-                                                     (let ((val (proto name)))
+                                                     (let ((val (property proto name)))
                                                        (when val (done val))))
                                                    (obj 'prototypes))
                                          #f))))
            (unless res (error 'no-such-property obj name))
-           (if (null? params)
-               res
-               (apply res (append (list obj) params)))))
+           res))
    (lambda (obj name newval) (set! ((obj 'fields) name) newval))))
 
 
 (define p (make-object))
 (set! (p 'foo) 'boogaloo)
-(set! (p 'classmethod) (lambda _ (display _)))
+(set! (p 'classmethod) (lambda args (display 'classmethod->) (display args)))
 (define x (make-object p))
 (attach-event x 'foo (lambda (p) (display "foo event on x")))
 (attach-event x 'bar (lambda (p) (display "bar event on x named ") (display (x 'name))))
@@ -49,14 +47,6 @@
 (newline)
 (display "calling method name = ")
 (x 'classmethod 'arg1 'arg2)
-
-
-
-
-
-
-
-
 
 
 
