@@ -25,7 +25,7 @@
            (if (null? params)
                res
                (apply res (append (list obj) params)))))
-   (lambda (obj name newval) (hash-table-set! (obj 'fields) name newval))))
+   (lambda (obj name newval) (set! ((obj 'fields) name) newval))))
 
 
 (define p (make-object))
