@@ -23,18 +23,19 @@
              (set! res (call-with-exit (lambda (done)
                                          (for-each (lambda (proto)
                                                      (let ((val (proto name)))
-                                                       (when val (done val)))) (obj 'prototypes))
+                                                       (when val (done val))))
+                                                   (obj 'prototypes))
                                          #f))))
            (unless res (error 'no-such-property obj name))
            (if (null? params)
                res
-               (apply res (cons obj params)))))
+               (apply res (append (list obj) params)))))
    (lambda (obj name newval) (set! ((obj 'fields) name) newval))))
 
 
 (define p (make-object))
-(set! (property p 'foo) 'boogaloo)
-(set! (property p 'classmethod) (lambda (self _) (display self)))
+(set! (p 'foo) 'boogaloo)
+(set! (p 'classmethod) (lambda _ (display _)))
 (define x (make-object p))
 (attach-event x 'foo (lambda (p) (display "foo event on x")))
 (attach-event x 'bar (lambda (p) (display "bar event on x named ") (display (x 'name))))
@@ -47,7 +48,7 @@
 (display (x 'foo))
 (newline)
 (display "calling method name = ")
-(x 'classmethod 'dummyarg)
+(x 'classmethod 'arg1 'arg2)
 
 
 
