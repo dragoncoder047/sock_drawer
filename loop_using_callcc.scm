@@ -1,0 +1,13 @@
+(define (my-while header body)
+  (let ((here '()))
+    (call/cc (lambda (h) (set! here h) '()))
+    (if (header)
+        (begin (body) (here '())))))
+
+(define x 0)
+(my-while (lambda () (< x 10))
+       (lambda ()
+        (display "hello, World ")
+         (display x)
+        (newline)
+        (set! x (1+ x))))
