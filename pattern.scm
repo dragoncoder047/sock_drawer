@@ -1,13 +1,19 @@
 (define (flatmap func list)
     (apply append (map func list)))
 
+;; (define gensym
+;;     (let ((counter -1))
+;;         (lambda ()
+;;             (set! counter (1+ counter))
+;;             (string->symbol (string-append "l" (number->string counter 10))))))
+
 (define (pat2insts e)
     (if (not (pair? e))
         `((match-value ,e))
         (let ((command (car e))
               (args (cdr e))
-              (top (gensym))
-              (end (gensym)))
+              (top (gensym "top"))
+              (end (gensym "end")))
             (case command
                 ((a an class)
                     `(match-type ,@args))
@@ -20,20 +26,20 @@
                           (incode (compile (list-tail args 3)))
                           (result '()))
                         (let loop ((i minrep))
-                            (when (> 0 i)
+                            (when (< 0 i)
                                 (set! result (append result incode))
                                 (loop (1- i))))
                         (if (or (null? maxrep) (eqv? +inf.0 maxrep))
                             `(,@result (goto ,@tgtpair) ,top ,@incode (goto ,top) ,end)
-                            (let ((counter (gensym)))
+                            (let ((counter (gensym "counter")))
                                 `(,@result (setup-counter ,counter ,(- maxrep minrep)) (goto ,@tgtpair) ,top (decrement-counter ,counter ,end) ,@incode (goto ,top) ,end)))))
                 ((alternate any)
                     (let ((in (list))
                           (places (list)))
                         (let loop ((c args))
-                            (let ((here (gensym)))
+                            (let ((here (gensym "option")))
                                 (when (pair? c)
-                                    (set! in `(,@in ,here ,@(compile (car c)) (goto ,end)))
+                                    (set! in `(,@in ,here ,@(compile (car c)) ,@(if (null? (cdr c)) '() `((goto ,end)))))
                                     (set! places (append places (list here)))
                                     (loop (cdr c)))))
                         `((goto ,@places) ,@in ,end)))
@@ -47,4 +53,4 @@
 
 ;; BUGGY
 
-(display (compile '((alternate foo bar baz (many 0 10 #f aa bb)))))
+(display (compile '((alternate foo bar baz ((space)) ((many 10 12 #f aa bb))))))
