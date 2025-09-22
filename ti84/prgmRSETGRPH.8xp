@@ -37,7 +37,7 @@
 :10.25→Ymax
 :1→Xscl
 :⁻16.5→Xmin
-:⁻10.25→Ymax
+:⁻10.25→Ymin
 :1→Yscl
 :PlotsOff
 :ClrDraw
